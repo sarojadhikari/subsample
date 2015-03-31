@@ -28,14 +28,12 @@ print "number of cores: "+str(comm.size)+"\n"
 # initialize the subsampling code
 # first generate segments
 ss.GenerateSegments(comm.rank)
-print comm.rank
+#print comm.rank
 comm.Barrier() # end till everything is done
 
 # now distribute the generation of subsamples (64 of them) in the 32 cores
 segs=ss.subx
 bdown=int(ss.Nsubs/ss.Nfiles)
-div=int(segs/bdown)
-print div
 
 # generate si, sx, sy from cNum, cpus, and segs
 
@@ -46,7 +44,7 @@ def sxy(cNum, segs):
     return [si, sx, sy]
 
 for i in range(0, bdown):
-    si, sx, sy = sxy((i+1)*comm.rank, segs)
+    si, sx, sy = sxy((i*ss.Nfiles)+comm.rank, segs)
     ss.GenerateSubSample(si, sx, sy)
     comm.Barrier()
 
