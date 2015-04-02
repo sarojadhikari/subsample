@@ -1,9 +1,10 @@
 # master script to analyse a large volume density field values by breaking down into smaller subvolumes
-# makes use of halo2d.py
+# makes use of ssutils.py
 # can work on local non-Gaussianity for each subvolume, as one can just add fNL(d^2-<d^2>_large) term in each subvolume
 
 import numpy as np
 from ssutils import cube_to_healpix, read_delta_map
+from powerspectrum import cross_powerspectrum, auto_powerspectrum
 
 class subsample(object):
     """
@@ -32,7 +33,7 @@ class subsample(object):
         self.outputdir=odir
         
     def temp_fname(self, sx, sy, tc):
-        return "temp/sub512_"+str(sx)+"_"+str(sy)+"_"+str(tc)+".npy"
+        return "temp/segment_"+str(sx)+"_"+str(sy)+"_"+str(tc)+".npy"
         
     def read_density_file(self, fileN):
         """
@@ -62,7 +63,7 @@ class subsample(object):
         """
         return 0
             
-    def GenerateSubSample(self, seg, sx, sy):
+    def GenerateSubSample(self, seg, sx, sy, ps=False, Lsub=1.):
         """
         generate a subsample by combining relevant segements
         """
@@ -80,6 +81,11 @@ class subsample(object):
         self.dsq[subN]=np.var(data)
         # save this subsample and also generate and save 2D projections
         np.save(self.outputdir+"dmap_"+str(subN)+".npy", data)
+        
+        if (ps):
+            pslists=auto_powerspectrum(data, Lbox=Lsub)
+            np.save(self.outputdir+"pslists_"+str(subN)+".npy", pslists)
+        
         hmap=cube_to_healpix(data, self.nside)
         np.save(self.outputdir+"hmap_"+str(subN)+".npy", hmap)
         print subN

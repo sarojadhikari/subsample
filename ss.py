@@ -13,13 +13,15 @@ if (argc>3):
     LMESH=int(sys.argv[4])
     SUBX=int(sys.argv[5])
     nside=int(sys.argv[6])
+    Lbox=int(sys.argv[7])
 else:
     NFILES=32
     LMESH=2048
     SUBX=4
     nside=256
+    Lbox=80000
 
-ss = subsample(filebase="gauspot.delta", Nfiles=NFILES, Lmesh=LMESH, subx=SUBX, NSIDE=nside)
+ss = subsample(filebase="pot.delta", Nfiles=NFILES, Lmesh=LMESH, subx=SUBX, NSIDE=nside)
 ss.set_basedir("/gpfs/home/sza5154/scratch/"+name+"/"+seed+"/")
 ss.set_outputdir(ss.basedir)
 
@@ -45,10 +47,8 @@ def sxy(cNum, segs):
 
 for i in range(0, bdown):
     si, sx, sy = sxy((i*ss.Nfiles)+comm.rank, segs)
-    ss.GenerateSubSample(si, sx, sy)
+    ss.GenerateSubSample(si, sx, sy, ps=True, Lsub=Lbox/ss.subx)
     comm.Barrier()
 
 if (comm.rank==0):
     print "done"
-            
-
