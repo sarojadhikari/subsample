@@ -19,7 +19,7 @@ def cross_powerspectrum(dfield1, dfield2, Lbox=1.):
     dx=Lbox/ng
     dx3=np.power(dx, 3.0)
     ng3=np.power(ng, 3.0)
-    Lb3=np.power(Lbox, 3.0)
+    #Lb3=np.power(Lbox, 3.0)
     kmax=np.pi/dx
     
     pk=np.zeros(ng)
@@ -44,8 +44,8 @@ def cross_powerspectrum(dfield1, dfield2, Lbox=1.):
     
     for i in range(ng):
         if (ck[i]>0.0):
-            pk[i]=pk[i]*Lb3*dx3/ng3/ck[i]
-            sk[i]=sk[i]*Lb3*np.power(dx3/ng3, 2.0)/ck[i]
+            pk[i]=pk[i]*dx3/ng3/ck[i]
+            sk[i]=sk[i]*np.power(dx3/ng3, 2.0)/ck[i]
             sk[i]=np.sqrt((sk[i]-pk[i]*pk[i])/(ck[i]-1.0))
 
     return np.array([klist, pk, sk, ck]) 

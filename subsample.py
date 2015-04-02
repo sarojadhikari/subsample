@@ -4,7 +4,7 @@
 
 import numpy as np
 from ssutils import cube_to_healpix, read_delta_map
-from powerspectrum import cross_powerspectrum, auto_powerspectrum
+from powerspectrum import auto_powerspectrum
 
 class subsample(object):
     """
