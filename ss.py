@@ -48,6 +48,7 @@ def sxy(cNum, segs):
 for i in range(0, bdown):
     si, sx, sy = sxy((i*ss.Nfiles)+comm.rank, segs)
     ss.GenerateSubSample(si, sx, sy, ps=True, Lsub=Lbox/ss.subx)
+    print Lbox/ss.subx
     comm.Barrier()
 
 if (comm.rank==0):

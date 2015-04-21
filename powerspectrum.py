@@ -16,39 +16,44 @@ def cross_powerspectrum(dfield1, dfield2, Lbox=1.):
     fdf2=np.fft.rfftn(dfield2)
     
     dk=2.0*np.pi/Lbox
-    dx=Lbox/ng
-    dx3=np.power(dx, 3.0)
-    ng3=np.power(ng, 3.0)
+    dk=1
     #Lb3=np.power(Lbox, 3.0)
-    kmax=np.pi/dx
+    #dx=Lbox/ng
+    kmax=ng*dk
+    
+    ngmax=ng/2+1    
     
     pk=np.zeros(ng)
     ck=np.zeros(ng)
     sk=np.zeros(ng)
     
+    dpklist=np.abs(np.conjugate(fdf1)*fdf2)
+    
     for i in range(ng):
         for j in range(ng):
-            for l in range(int(ng/2+1)):
-                kv=np.array([dk*(i if i<(ng/2+1) else i-ng),
-                             dk*(j if j<(ng/2+1) else j-ng),
+            for l in range(int(ngmax)):
+                kv=np.array([dk*(i if i<(ngmax) else i-ng),
+                             dk*(j if j<(ngmax) else j-ng),
                              dk*l])
                 knorm=np.sqrt(np.dot(kv, kv))
                 bn=int(np.round(knorm*ng/kmax))
                 if (bn>=0 and bn<ng):
                     ck[bn]=ck[bn]+1.0
-                    dpk=np.abs(np.vdot(fdf1[i][j][l], fdf2[i][j][l]))/np.power(ft_CIC(kv, dx), 2.0)
+                    dpk=dpklist[i][j][l] #np.abs(np.vdot(fdf1[i][j][l], fdf2[i][j][l]))
                     pk[bn]=pk[bn]+dpk
                     sk[bn]=sk[bn]+np.power(dpk, 2.0)
     
-    klist=np.array([dk*i for i in range(ng)])
+    klist=np.array([i*dk*2.0*np.pi/Lbox for i in range(ngmax)])
     
-    for i in range(ng):
+    rat = np.power(Lbox, 3.0)/np.power(ng, 6.0)       # the (np.pi)^3 factor comes from numpy.fft convention
+
+    for i in range(ngmax):
         if (ck[i]>0.0):
-            pk[i]=pk[i]*dx3/ng3/ck[i]
-            sk[i]=sk[i]*np.power(dx3/ng3, 2.0)/ck[i]
+            pk[i]=rat*pk[i]/ck[i]
+            sk[i]=np.power(rat, 2.0)*sk[i]/ck[i]
             sk[i]=np.sqrt((sk[i]-pk[i]*pk[i])/(ck[i]-1.0))
 
-    return np.array([klist, pk, sk, ck]) 
+    return np.array([klist, pk[:ngmax], sk[:ngmax], ck[:ngmax]]) 
     
     
 def auto_powerspectrum(dfield, Lbox=1.):

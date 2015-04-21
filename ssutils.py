@@ -32,7 +32,7 @@ def vector(pos, center=[0.5, 0.5, 0.5], dist=0):
     vec = np.array([pos[0]-center[0], pos[1]-center[0], pos[2]-center[0]])
     return vec/dist
     
-def cube_to_healpix(data, NSIDE=16):
+def cube_to_healpix(data, NSIDE=16, lowcount=10):
     """
     * identify the angle of each grid point from the center of the grid
     * if this grid point lies inside the radius, then project to the relevant healpix pixel
@@ -50,7 +50,7 @@ def cube_to_healpix(data, NSIDE=16):
         for ny in range(nbins):
             for nz in range(nbins):
                 dis=abs(distance(np.array([nx, ny, nz]), np.array([ccord, ccord, ccord])))
-                if (dis<ccord and dis>ccord/8.0): 
+                if (dis<ccord/2.0 and dis>ccord/8.0): 
                     # the grid point is inside
                     vx,vy,vz=vector([nx,ny,nz], [ccord,ccord,ccord])
                     pix=hp.vec2pix(NSIDE, vx, vy, vz)
@@ -58,8 +58,10 @@ def cube_to_healpix(data, NSIDE=16):
                     d=data[nx][ny][nz]
                     mmap[pix]=mmap[pix]+d
                     vmap[pix]=vmap[pix]+np.power(d,2.0)
-     
-    return [pmap, mmap, vmap]           
+    
+    # also generate mask for low statistic points for which count is less than 10    
+    mask=np.logical_not(pmap>lowcount)
+    return [pmap, mmap, vmap, mask]           
 
 def get_hem_Cls(skymap, direction, LMAX=256):
     """

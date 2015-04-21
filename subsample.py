@@ -3,8 +3,9 @@
 # can work on local non-Gaussianity for each subvolume, as one can just add fNL(d^2-<d^2>_large) term in each subvolume
 
 import numpy as np
-from ssutils import cube_to_healpix, read_delta_map
-from powerspectrum import auto_powerspectrum
+from ssutils import read_delta_map
+#from powerspectrum import auto_powerspectrum
+from bkdirect import densityfield
 
 class subsample(object):
     """
@@ -14,7 +15,7 @@ class subsample(object):
     of float (8 bytes each)
     """
     
-    def __init__(self, filebase="gauspot", Nfiles=32, Lmesh=2048, subx=4, NSIDE=256):
+    def __init__(self, filebase="pot.delta", Nfiles=32, Lmesh=2048, subx=4, NSIDE=256):
         self.filebase = filebase
         self.Nfiles = Nfiles
         self.Lmesh = Lmesh
@@ -24,16 +25,15 @@ class subsample(object):
         self.segments = self.subgrid/self.Xmesh
         self.Nsubs=int(np.power(self.subx, 3.0))
         self.nside=NSIDE
-        self.dsq=np.zeros(self.Nsubs)
         
     def set_basedir(self, basedir):
         self.basedir=basedir
     
     def set_outputdir(self, odir):
         self.outputdir=odir
-        
-    def temp_fname(self, sx, sy, tc):
-        return "temp/segment_"+str(sx)+"_"+str(sy)+"_"+str(tc)+".npy"
+    
+    def temp_fname(self, sx, sy, tc, fbase="segment"):
+        return "temp/"+fbase+"_"+str(sx)+"_"+str(sy)+"_"+str(tc)+".npy"
         
     def read_density_file(self, fileN):
         """
@@ -77,16 +77,68 @@ class subsample(object):
         except:
             print "error loading files, perhaps the segments are not fully generated\n"
             return 0
-            
-        self.dsq[subN]=np.var(data)
+        
+        np.save(self.outputdir+"stat_"+str(subN)+".npy", np.array([np.mean(data), np.var(data)]))
         # save this subsample and also generate and save 2D projections
         np.save(self.outputdir+"dmap_"+str(subN)+".npy", data)
         
         if (ps):
-            pslists=auto_powerspectrum(data, Lbox=Lsub)
-            np.save(self.outputdir+"pslists_"+str(subN)+".npy", pslists)
+            df=densityfield(data, skip=1, Lbox=Lsub)
+            df.equil_bispectrum()
+            np.save(self.outputdir+"pslists_"+str(subN)+".npy", np.array([df.powerspectrum, df.paircount]))
+            np.save(self.outputdir+"eqbis_"+str(subN)+".npy", np.array([df.eqbispectrum, df.eqtriangles]))
         
-        hmap=cube_to_healpix(data, self.nside)
-        np.save(self.outputdir+"hmap_"+str(subN)+".npy", hmap)
+        #hmap=cube_to_healpix(data, self.nside)
+        #np.save(self.outputdir+"hmap_"+str(subN)+".npy", hmap)
         print subN
-                
+
+class subsubsample(object):
+    """
+    reads a subsample (or more generally a cubic box with density values)
+    and can subdivide into subsubsamples (cubic) and generate 
+    power spectrum and other useful statistics
+    """              
+    def __init__(self, filebase="dmap", sn=0, Lmesh=400, subx=2):
+        self.filebase = filebase
+        self.samplenumber = sn
+        self.Lmesh = Lmesh
+        self.subx = subx
+        self.subgrid = Lmesh/subx
+        self.Nsubs=int(np.power(self.subx, 3.0))
+        
+    def set_basedir(self, basedir):
+        self.basedir=basedir
+    
+    def set_outputdir(self, odir):
+        self.outputdir=odir
+        
+    def read_density_file(self):
+        """
+        read the numpy map number #mapN and return its data as a numpy array
+        """
+        return np.load(self.basedir+self.filebase+"_"+str(self.samplenumber)+".npy")
+    
+    def GenerateSSSamples(self, ps=True, Lsub=1.):
+        try:
+            data=self.read_density_file()
+        except:
+            print "error loading density file\n"
+            return 0
+        
+        for sx in range(self.subx):
+            for sy in range(self.subx):
+                for sz in range(self.subx):
+                    width=self.Lmesh/self.subx
+                    ssdata=data[sx*width:(sx+1)*width, sy*width:(sy+1)*width, sz*width:(sz+1)*width]
+                    # save this and also generate power spectrum stats etc
+                    subN=(sx*self.subx*self.subx+sy*self.subx+sz)+self.samplenumber*self.subx*self.subx*self.subx                    
+                    print subN
+                    np.save(self.outputdir+"dmap_"+str(subN)+".npy", ssdata)
+                    np.save(self.outputdir+"stat_"+str(subN)+".npy", np.array([np.mean(ssdata), np.var(ssdata)]))
+                    
+                    if (ps):
+                        df=densityfield(data, skip=1, Lbox=Lsub)
+                        df.equil_bispectrum()
+                        np.save(self.outputdir+"pslists_"+str(subN)+".npy", np.array([df.powerspectrum, df.paircount]))
+                        np.save(self.outputdir+"eqbis_"+str(subN)+".npy", np.array([df.eqbispectrum, df.eqtriangles]))
+        
