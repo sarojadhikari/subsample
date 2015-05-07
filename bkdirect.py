@@ -31,7 +31,7 @@ class densityfield(object):
         """
         self.psfactor = np.power(self.Lbox, 3.0)/np.power(self.ngrid, 6.0)
         self.nkindx=self.nkmax/self.skip
-        self.bsfactor = self.psfactor/np.power(self.ngrid, 3.0)
+        self.bsfactor = np.power(self.Lbox, 6.0)/np.power(self.ngrid, 9.0)
     
     def compute_powerspectrum(self):
         """
@@ -44,12 +44,8 @@ class densityfield(object):
         generate the d(k) i.e. FT of density field given a 3D distribution 
         in a cube
         """
-        self.kdfield=np.fft.rfftn(self.dfield)
-        self.freq12=np.fft.fftfreq(self.ngrid, 1.0/self.ngrid)
-        try:
-            self.freq3=np.fft.rfftfreq(self.ngrid, 1.0/self.ngrid)
-        except:
-            self.freq3=np.arange(0, self.ngrid/2+1)
+        self.kdfield=np.fft.fftn(self.dfield)
+        self.freq123=np.fft.fftfreq(self.ngrid, 1.0/self.ngrid)
 
         return self.kdfield  
 
@@ -68,7 +64,7 @@ class densityfield(object):
         """
         return np.array([k1 if k1>=0 else k1+self.ngrid,
                         k2 if k2>=0 else k2+self.ngrid,
-                        k3 if k3>=0 else -k3])/self.dk # don't forget to use np.conjugate for negative k3
+                        k3 if k3>=0 else k3+self.ngrid])/self.dk # don't forget to use np.conjugate for negative k3
         #return np.array(np.where(self.freq12==k1)[0][0], np.where(self.freq12==k2)[0][0], np.where(self.freq3==np.abs(k3))[0][0]) # for older numpy version
         #return np.array([self.freq12.index(k1), self.freq12.index(k2), self.freq3.index(np.abs(k3))])
     
@@ -80,16 +76,9 @@ class densityfield(object):
 
     def get_dk_123(self, k1, k2, k3):
         i, j, l = self.kindex(k1, k2, k3)
-        try:
-            if (k3>=0):
-                return self.kdfield[i][j][l]
-            else:
-                return np.conjugate(self.kdfield[i][j][l])
-        except:
-            print 123, i, j, l
-            return 0
+        return self.kdfield[i][j][l]
 
-    def equil_bispectrum(self):
+    def equil_bispectrum(self, rfac=4):
         """
         a version of the bk_directsample  to obtain equilateral bispectrum
         B(k, k, k) for some set of averaged k=kindex
@@ -97,19 +86,19 @@ class densityfield(object):
         if self.kdfield==None:
             self.get_dk()
         
-        bk=np.zeros(self.nkindx, dtype=np.cfloat)
-        ntr=np.zeros(self.nkindx)
+        bk=np.zeros(self.nkindx/rfac, dtype=np.cfloat)
+        ntr=np.zeros(self.nkindx/rfac)
         
-        pk=np.zeros(self.nkindx)
-        ck=np.zeros(self.nkindx)
-        rfac=10
-        for k11 in range(self.ngmin/rfac, self.ngmax/rfac):
-            for k12 in range(self.ngmin/rfac, self.ngmax/rfac):
-                for k13 in range(self.ngmin/rfac, self.ngmax/rfac):
+        pk=np.zeros(self.nkindx/rfac)
+        ck=np.zeros(self.nkindx/rfac)
+        
+        for k11 in range(self.ngmin, self.ngmax):
+            for k12 in range(self.ngmin, self.ngmax):
+                for k13 in range(self.ngmin, self.ngmax):
                     k1abs=np.sqrt(k11*k11+k12*k12+k13*k13)
                     k1indx=int(round(k1abs/self.skip))
                     
-                    if (k1indx < self.nkindx):
+                    if (k1indx < self.nkindx/rfac):
                         dk1=self.get_dk_123(k11, k12, k13)
                         pk[k1indx]=pk[k1indx]+np.vdot(dk1, dk1)
                         ck[k1indx]=ck[k1indx]+1                        
@@ -120,8 +109,8 @@ class densityfield(object):
                             for k22 in range(-k2max, k2max):
                                 for k23 in range(-k2max, k2max):
                                     k2abs=np.sqrt(k21*k21+k22*k22+k23*k23)
-				    k2indx=int(round(k2abs/self.skip))                                    
-				    if (k2indx==k1indx):
+                                    k2indx=int(round(k2abs/self.skip))                                    
+                                    if (k2indx==k1indx):
                                         # triangle condition
                                         k31=-(k11+k21); k32=-(k12+k22); k33=-(k13+k23)
                                         k3abs=np.sqrt(k31*k31+k32*k32+k33*k33)
@@ -139,17 +128,19 @@ class densityfield(object):
                                                 print k1indx
                                                 return 1
         
-        for i in range(self.nkindx):
+        for i in range(self.nkindx/rfac):
             if ntr[i]==0:
                 ntr[i]=1
             if ck[i]==0:
                 ck[i]=1
         
-        self.eqbispectrum=np.array([self.bsfactor*bk[i]/ntr[i] for i in range(self.nkindx)])
-        self.eqtriangles=ntr
-        
-        self.powerspectrum=np.array([self.psfactor*pk[i]/ck[i] for i in range(self.nkindx)])
+        self.powerspectrum=np.array([self.psfactor*pk[i]/ck[i] for i in range(self.nkindx/rfac)])
         self.paircount=ck
+
+        self.bkdata=bk        
+        
+        self.eqbispectrum=np.array([self.bsfactor*np.real(bk[i])/ntr[i]/np.power(self.powerspectrum[i],2.0)/3.0 for i in range(self.nkindx/rfac)])  # reduced bispectrum Q(k, k, k)
+        self.eqtriangles=ntr
         return 0
 
     def bk_directsample(self, psonly=False):

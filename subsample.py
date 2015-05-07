@@ -98,7 +98,7 @@ class subsubsample(object):
     and can subdivide into subsubsamples (cubic) and generate 
     power spectrum and other useful statistics
     """              
-    def __init__(self, filebase="dmap", sn=0, Lmesh=400, subx=2):
+    def __init__(self, filebase="dmap", sn=0, Lmesh=200, subx=2):
         self.filebase = filebase
         self.samplenumber = sn
         self.Lmesh = Lmesh
@@ -137,8 +137,8 @@ class subsubsample(object):
                     np.save(self.outputdir+"stat_"+str(subN)+".npy", np.array([np.mean(ssdata), np.var(ssdata)]))
                     
                     if (ps):
-                        df=densityfield(data, skip=1, Lbox=Lsub)
-                        df.equil_bispectrum()
+                        df=densityfield(ssdata, skip=1, Lbox=Lsub)
+                        df.equil_bispectrum(rfac=2)
                         np.save(self.outputdir+"pslists_"+str(subN)+".npy", np.array([df.powerspectrum, df.paircount]))
                         np.save(self.outputdir+"eqbis_"+str(subN)+".npy", np.array([df.eqbispectrum, df.eqtriangles]))
         
