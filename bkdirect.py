@@ -21,6 +21,7 @@ class densityfield(object):
         self.Lbox=Lbox
         self.kdfield=None
         self.pksample=None
+        self.delninr=None
         
         self.compute_parameters()
     
@@ -57,6 +58,64 @@ class densityfield(object):
         return np.array([self.dk*self.freq12[i],
                          self.dk*self.freq12[j],
                          self.dk*self.freq3[l]])
+
+    def get_dki_nr(self):
+        """
+        generate d_ni(nrv) for bispectrum estimator II
+        """
+        if self.kdfield==None:
+            self.get_dk()
+            
+        delm = np.array([np.zeros(self.kdfield.shape)]*self.nkindx, dtype=np.cfloat)
+        ntra = np.array([np.zeros(self.kdfield.shape)]*self.nkindx, dtype=np.cfloat)
+        
+        for na in range(self.ngmin, self.ngmax):
+            for nb in range(self.ngmin, self.ngmax):
+                for nc in range(self.ngmin, self.ngmax):
+                    nabs=np.sqrt(na*na+nb*nb+nc*nc)
+                    kindx=int(round(nabs/self.skip))
+                    if kindx<self.nkindx:
+                        m1, m2, m3 = self.kindex(na, nb, nc)
+                        delm[kindx][m1][m2][m3]=self.kdfield[m1][m2][m3]
+                        ntra[kindx][m1][m2][m3]=1.0
+        
+        # now FT each of these
+        self.delninr=[]
+        for ni in range(self.nkindx):
+            self.delninr.append(np.fft.fftn(delm[ni]))
+            
+        # save delninr
+        #np.savetxt()
+        # get the # of triangles
+        self.neqtr2=[]
+        self.ntrfdata=[]
+        for ni in range(self.nkindx):
+            self.ntrfdata.append(np.fft.fftn(ntra[ni]))
+        
+        self.Bequil=[]
+        for ki in range(self.nkindx):
+            ntrtemp=0.
+            beqtemp=0.
+            for nr1 in range(self.ngrid):
+                for nr2 in range(self.ngrid):
+                    for nr3 in range(self.ngrid):
+                        ntrtemp=ntrtemp+np.power(np.real(self.ntrfdata[ki][nr1][nr2][nr3]), 3.0)
+                        beqtemp=beqtemp+np.power(np.real(self.delninr[ki][nr1][nr2][nr3]), 3.0)
+            print ntrtemp/self.ngrid**3.0
+            self.neqtr2.append(int(round(ntrtemp/self.ngrid**3.0)))
+            self.Bequil.append(beqtemp)
+                        
+            
+    def equil2(self):
+        if self.delninr==None:
+            self.get_dki_nr()
+        if self.powerspectrum==None:
+            self.compute_powerspectrum()
+            
+        self.Qequil=np.array([self.Bequil[i]*self.bsfactor/np.power(self.ngrid, 3.0)/self.neqtr2[i]/self.powerspectrum[i]**2.0/3.0 for i in range(len(self.Bequil))])
+        
+        #for k in range(self.nkindx):
+            
 
     def kindex(self, k1, k2, k3):
         """
@@ -123,7 +182,7 @@ class densityfield(object):
                                             
                                             try:
                                                 bk[k1indx]=bk[k1indx]+(dk1*dk2*dk3)
-                                                ntr[k1indx]=ntr[k1indx]+1
+                                                ntr[k1indx]=ntr[k1indx]+1.
                                             except:
                                                 print k1indx
                                                 return 1

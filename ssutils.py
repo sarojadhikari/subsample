@@ -11,7 +11,15 @@ import numpy as np
 import healpy as hp
 import struct
 
-def read_delta_map(deltamapbinary, Lmesh=2048, Xmesh=64):
+def read_delta_map(deltamapbinary, txtfile=True, Lmesh=2048, Xmesh=64):
+    if (txtfile):
+        dataall=np.loadtxt(deltamapbinary)
+        try:
+            return dataall.reshape(Xmesh, Lmesh, Lmesh)
+        except:
+            print "error reshaping the file"
+            return 0
+        
     fl = open(deltamapbinary, "rb")
     data=np.array([np.array([np.array([0.]*Lmesh)]*Lmesh)]*Xmesh) 
     fl.seek(0)
@@ -19,9 +27,13 @@ def read_delta_map(deltamapbinary, Lmesh=2048, Xmesh=64):
         for j in range(Lmesh):
             for k in range(Lmesh):
                 btes=fl.read(8)
-                data[i][j][k]=struct.unpack('d', btes)[0]                
+                data[i][j][k]=struct.unpack('d', btes)[0] 
+                #if np.abs(data[i][j][k])<0.000000001:
+                    #print i, j, k, data[i][j][k]
     fl.close()
     return data
+
+
 
 def distance(p1, p2):
     return np.sqrt(np.power(p1[0]-p2[0], 2.0)+np.power(p1[1]-p2[1], 2.0)+np.power(p1[2]-p2[2], 2.0))

@@ -39,7 +39,7 @@ class subsample(object):
         """
         read the binary map number #mapN and return its data as a numpy array
         """
-        return read_delta_map(self.basedir+self.filebase+"."+str(fileN), Lmesh=self.Lmesh, Xmesh=self.Xmesh)
+        return read_delta_map(self.basedir+self.filebase+"."+str(fileN),  Lmesh=self.Lmesh, Xmesh=self.Xmesh)
         
     def GenerateSegments(self, fNi):
         """
@@ -84,10 +84,11 @@ class subsample(object):
         
         if (ps):
             df=densityfield(data, skip=1, Lbox=Lsub)
-            df.equil_bispectrum()
+            df.equil2()
+            np.save(self.outputdir+"dkinr_"+str(subN)+".npy", df.delninr)
             np.save(self.outputdir+"pslists_"+str(subN)+".npy", np.array([df.powerspectrum, df.paircount]))
-            np.save(self.outputdir+"eqbis_"+str(subN)+".npy", np.array([df.eqbispectrum, df.eqtriangles]))
-        
+            np.save(self.outputdir+"eqbis_"+str(subN)+".npy", np.array([df.Qequil, df.neqtr2]))
+      
         #hmap=cube_to_healpix(data, self.nside)
         #np.save(self.outputdir+"hmap_"+str(subN)+".npy", hmap)
         print subN
@@ -95,7 +96,7 @@ class subsample(object):
 class subsubsample(object):
     """
     reads a subsample (or more generally a cubic box with density values)
-    and can subdivide into subsubsamples (cubic) and generate 
+    and subdivide into subsubsamples (cubic) and generate 
     power spectrum and other useful statistics
     """              
     def __init__(self, filebase="dmap", sn=0, Lmesh=200, subx=2):

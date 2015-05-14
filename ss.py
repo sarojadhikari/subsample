@@ -19,7 +19,7 @@ else:
     SUBX=4
     Lbox=80000
 
-ss = subsample(filebase="pot.delta", Nfiles=NFILES, Lmesh=LMESH, subx=SUBX)
+ss = subsample(filebase="pot.prim", Nfiles=NFILES, Lmesh=LMESH, subx=SUBX)
 bdir="/gpfs/home/sza5154/scratch/"+name+"/"+seed+"/"
 ss.set_basedir(bdir)
 ss.set_outputdir(ss.basedir+"64/")
@@ -59,11 +59,11 @@ for i in range(0, bdown):
 # code to further breakdown each subsample into newsubx^3 subvolumes
 # this way we get both 4^3=64 and 64*8=512 subsamples at once
 
-for i in range(0, bdown):
-    sampnum=comm.rank+(i*NFILES)
-    sss.samplenumber=sampnum
-    sss.GenerateSSSamples(ps=True, Lsub=Lbox/SUBX/newsubx)
-    comm.Barrier()
+#for i in range(0, bdown):
+#    sampnum=comm.rank+(i*NFILES)
+#    sss.samplenumber=sampnum
+#    sss.GenerateSSSamples(ps=True, Lsub=Lbox/SUBX/newsubx)
+#    comm.Barrier()
 
 if (comm.rank==0):
     print "done"
