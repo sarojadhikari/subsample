@@ -11,7 +11,7 @@ import numpy as np
 import healpy as hp
 import struct
 
-def read_delta_map(deltamapbinary, txtfile=True, Lmesh=2048, Xmesh=64):
+def read_delta_map(deltamapbinary, txtfile=False, Lmesh=150, Xmesh=150):
     if (txtfile):
         dataall=np.loadtxt(deltamapbinary)
         try:
@@ -28,8 +28,7 @@ def read_delta_map(deltamapbinary, txtfile=True, Lmesh=2048, Xmesh=64):
             for k in range(Lmesh):
                 btes=fl.read(8)
                 data[i][j][k]=struct.unpack('d', btes)[0] 
-                #if np.abs(data[i][j][k])<0.000000001:
-                    #print i, j, k, data[i][j][k]
+
     fl.close()
     return data
 
