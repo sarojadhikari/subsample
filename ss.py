@@ -6,29 +6,34 @@ import sys
 
 argc=len(sys.argv)
 name=sys.argv[1]
+print name
 seed=sys.argv[2]
+print seed
 
 if (argc>3):
     NFILES=int(sys.argv[3])
     LMESH=int(sys.argv[4])
     SUBX=int(sys.argv[5])
     Lbox=int(sys.argv[6])
-else:
-    NFILES=32
-    LMESH=2048
-    SUBX=4
-    Lbox=80000
-
-ss = subsample(filebase="pot.prim", Nfiles=NFILES, Lmesh=LMESH, subx=SUBX)
+    try:
+        fbase=sys.argv[7]
+    except:
+        fbase="pot.prim"
+        
+ss = subsample(filebase=fbase, Nfiles=NFILES, Lmesh=LMESH, subx=SUBX)
 bdir="/gpfs/home/sza5154/scratch/"+name+"/"+seed+"/"
 ss.set_basedir(bdir)
-ss.set_outputdir(ss.basedir+"64/")
+
+if SUBX<5:
+    ss.set_outputdir(ss.basedir+fbase+"64/")
+else:
+    ss.set_outputdir(ss.basedir+fbase+"512/")
 
 
-newsubx=2
-sss=subsubsample(Lmesh=LMESH/SUBX, subx=newsubx)
-sss.set_basedir(bdir+"64/")
-sss.set_outputdir(bdir+"512/")
+#newsubx=2
+#sss=subsubsample(Lmesh=LMESH/SUBX, subx=newsubx)
+#sss.set_basedir(bdir+"64/")
+#sss.set_outputdir(bdir+"512/")
 
 comm = MPI.COMM_WORLD
 print "number of cores: "+str(comm.size)+"\n"
@@ -56,6 +61,11 @@ for i in range(0, bdown):
     #print Lbox/ss.subx
     comm.Barrier()
 
+# do anything that is left
+for i in range(bdown*ss.Nfiles, ss.Nsubs):
+    si, sx, sy= sxy(i, segs)
+    ss.GenerateSubSample(si, sx, sy, ps=True, Lsub=Lbox/ss.subx)
+    
 # code to further breakdown each subsample into newsubx^3 subvolumes
 # this way we get both 4^3=64 and 64*8=512 subsamples at once
 

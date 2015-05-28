@@ -85,7 +85,8 @@ class subsample(object):
         if (ps):
             df=densityfield(data, skip=1, Lbox=Lsub)
             df.equil2()
-            np.save(self.outputdir+"dkinr_"+str(subN)+".npy", df.delninr)
+            if (subN<self.Nsubs/10):
+                np.save(self.outputdir+"dkinr_"+str(subN)+".npy", df.delninr)
             np.save(self.outputdir+"pslists_"+str(subN)+".npy", np.array([df.powerspectrum, df.paircount]))
             np.save(self.outputdir+"eqbis_"+str(subN)+".npy", np.array([df.Qequil, df.neqtr2]))
       
@@ -139,7 +140,10 @@ class subsubsample(object):
                     
                     if (ps):
                         df=densityfield(ssdata, skip=1, Lbox=Lsub)
-                        df.equil_bispectrum(rfac=2)
+                        df.equil2()
+                        if (subN<self.Nsubs/8):
+                            np.save(self.outputdir+"dkinr_"+str(subN)+".npy", df.delninr)
+                            
                         np.save(self.outputdir+"pslists_"+str(subN)+".npy", np.array([df.powerspectrum, df.paircount]))
-                        np.save(self.outputdir+"eqbis_"+str(subN)+".npy", np.array([df.eqbispectrum, df.eqtriangles]))
+                        np.save(self.outputdir+"eqbis_"+str(subN)+".npy", np.array([df.Qequil, df.neqtr2]))
         
