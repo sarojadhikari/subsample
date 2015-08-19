@@ -136,7 +136,7 @@ class subsubsample(object):
                     subN=(sx*self.subx*self.subx+sy*self.subx+sz)+self.samplenumber*self.subx*self.subx*self.subx                    
                     print subN
                     np.save(self.outputdir+"dmap_"+str(subN)+".npy", ssdata)
-                    np.save(self.outputdir+"stat_"+str(subN)+".npy", np.array([np.mean(ssdata), np.var(ssdata)]))
+                    np.save(self.outputdir+"stat_"+str(subN)+".npy", np.array([np.mean(ssdata),np.var(ssdata)]))
                     
                     if (ps):
                         df=densityfield(ssdata, skip=1, Lbox=Lsub)

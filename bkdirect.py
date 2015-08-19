@@ -8,8 +8,14 @@ class densityfield(object):
     class to store and study a 3d density field
     mainly power spectrum and bispectrum implemented
     """
-    def __init__(self, dfield, dk=1, skip=1, Lbox=600.):
-        self.dfield=dfield # 3d density field as a numpy array
+    def __init__(self, dfield, dk=1, skip=1, Lbox=600., subtractmean=True):
+        
+        self.dmean=np.mean(dfield)
+        if (subtractmean):
+            self.dfield=dfield-self.dmean # 3d density field as a numpy array
+        else:
+            self.dfield=dfield
+            
         self.powerspectrum=None
         self.ngrid=len(dfield)
         self.ngmax=self.ngrid/2
@@ -268,3 +274,10 @@ class densityfield(object):
             self.ntriangles=ntr
         
         return 0
+
+    def bispectrum_tests(self):
+        """
+        make a test case: check I vs II estimators
+        """
+        
+        # generate a 3d 20^3 box with random numbers

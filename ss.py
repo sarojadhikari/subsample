@@ -21,7 +21,7 @@ if (argc>3):
         fbase="pot.prim"
         
 ss = subsample(filebase=fbase, Nfiles=NFILES, Lmesh=LMESH, subx=SUBX)
-bdir="/gpfs/home/sza5154/scratch/"+name+"/"+seed+"/"
+bdir="/storage/home/sza5154/scratch/"+name+"/"+seed+"/"
 ss.set_basedir(bdir)
 
 if SUBX<5:
