@@ -13,7 +13,7 @@ matplotlib.rcParams.update({'xtick.major.pad': 7})
 
 class SSPowerSpectra(object):
     
-    def __init__(self, basedir="/gpfs/home/sza5154/scratch", name="temp", seed="2321", Nsubs=64, Lsub=600.):
+    def __init__(self, basedir="/storage/home/sza5154/scratch", name="temp", seed="2321", Nsubs=64, Lsub=600.):
         self.basedir=basedir
         self.name=name
         self.seed=seed
@@ -33,7 +33,7 @@ class SSPowerSpectra(object):
         self.weightedpower=None
         self.normalized=False
 
-    def iBk(self):
+    def iBk(self, sigmasqgL=0.0):
         """
         get the integrated bispectrum (squeezed) by correlating P(k, sub) with
         the overdensity
@@ -44,7 +44,12 @@ class SSPowerSpectra(object):
         self.iBkmean=np.array([])
         self.iBksigma=np.array([])
         self.iBkdata=[]
-        sigmasqL=np.var(self.ds)
+	
+	if (sigmasqgL==0.0):
+	    sigmasqL=np.var(self.ds)
+	else:
+	    sigmasqL=sigmasqgL
+
         # NEED WEIGHTED AVERAGE?
         for i in range(0, len(self.klist)):
             iBkdat=np.array([self.powerspectra[j][i]*self.ds[j]/self.powerspectrum[i]/sigmasqL for j in range(self.Nsubs)])
@@ -54,6 +59,17 @@ class SSPowerSpectra(object):
             
         # get <P(k) \bar{phi}> correlation per subvolume -- this does not weigh the higher k more.
         self.iBksubs = np.mean(self.iBkdata, axis=0)
+    
+    def PPhicorr(self):
+        """
+        plot < PPhi \bar{Phi} > as a function of wavenumber k
+        """
+        try:
+            plt.plot(self.klist, self.iBkmean)
+        except:
+            self.read_statistics()
+            self.iBk()
+            self.PPhicorr()
 
     def weighted_ps(self, mfactor=1.1):
         """
