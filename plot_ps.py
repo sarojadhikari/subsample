@@ -13,7 +13,7 @@ matplotlib.rcParams.update({'xtick.major.pad': 7})
 
 class SSPowerSpectra(object):
     
-    def __init__(self, basedir="/storage/home/sza5154/scratch", name="normalfNL0", seed="7222", Nsubs=512, Lsub=300.):
+    def __init__(self, basedir="./data/", name="normalfNL0", seed="7222", Nsubs=512, Lsub=300.):
         self.basedir=basedir
         self.name=name
         self.seed=seed
@@ -180,10 +180,10 @@ class SSPowerSpectra(object):
         
         self.plt.xlabel(r"$k {\rm (h/Mpc)}$")
         if (self.normalized):
-            self.plt.ylabel(r"$P(k)^{\rm subvolume} / P(k)$")
+            self.plt.ylabel(r"$P_{\rm subvolume}(k)/ P_{\rm avg}(k)$")
             self.plt.yscale('linear')
         else:
-            self.plt.ylabel(r"${\rm P}(k)\; {\rm (Mpc/h)}^3$")
+            self.plt.ylabel(r"$P_{\rm subvolume}(k)\; {\rm (Mpc/h)}^3$")
             self.plt.yscale('log')
         
         if (show):
