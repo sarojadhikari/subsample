@@ -13,7 +13,7 @@ matplotlib.rcParams.update({'xtick.major.pad': 7})
 
 class SSPowerSpectra(object):
     
-    def __init__(self, basedir="/storage/home/sza5154/scratch", name="temp", seed="2321", Nsubs=64, Lsub=600.):
+    def __init__(self, basedir="/storage/home/sza5154/scratch", name="normalfNL0", seed="7222", Nsubs=512, Lsub=300.):
         self.basedir=basedir
         self.name=name
         self.seed=seed
@@ -140,6 +140,9 @@ class SSPowerSpectra(object):
         self.ds = self.ds - np.mean(self.ds)
         self.fNLeq=np.mean(self.eqbispectra, axis=0)
         self.fNLeqsubs=np.mean(self.eqbispectra, axis=1)
+        self.fNLeqds=[]
+        for i in range(len(self.eqbispectra)):
+            self.fNLeqds.append(np.array([self.ds[i]*self.eqbispectra[i][j] for j in range(30)]))
         
     def plot_ps(self, show=False, density=True, pcolor="r", mcolor="b", lw=1.0):
         """

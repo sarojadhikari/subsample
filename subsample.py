@@ -31,6 +31,10 @@ class subsample(object):
     
     def set_outputdir(self, odir):
         self.outputdir=odir
+        
+    def set_backupdir(self, ddir):
+        # save the bispectrum and power spectrum files here in the work dir
+        self.backupdir=ddir
     
     def temp_fname(self, sx, sy, tc, fbase="segment"):
         return "temp/"+fbase+"_"+str(sx)+"_"+str(sy)+"_"+str(tc)+".npy"
@@ -89,6 +93,10 @@ class subsample(object):
                 np.save(self.outputdir+"dkinr_"+str(subN)+".npy", df.delninr)
             np.save(self.outputdir+"pslists_"+str(subN)+".npy", np.array([df.powerspectrum, df.paircount]))
             np.save(self.outputdir+"eqbis_"+str(subN)+".npy", np.array([df.Qequil, df.neqtr2]))
+
+            if (self.backupdir!=""):
+                np.save(self.backupdir+"pslists_"+str(subN)+".npy", np.array([df.powerspectrum, df.paircount]))
+                np.save(self.backupdir+"eqbis_"+str(subN)+".npy", np.array([df.Qequil, df.neqtr2]))
       
         #hmap=cube_to_healpix(data, self.nside)
         #np.save(self.outputdir+"hmap_"+str(subN)+".npy", hmap)
@@ -107,12 +115,17 @@ class subsubsample(object):
         self.subx = subx
         self.subgrid = Lmesh/subx
         self.Nsubs=int(np.power(self.subx, 3.0))
+        self.backupdir=""
         
     def set_basedir(self, basedir):
         self.basedir=basedir
     
     def set_outputdir(self, odir):
         self.outputdir=odir
+        
+    def set_backupdir(self, ddir):
+        # save the bispectrum and power spectrum files here in the work dir
+        self.backupdir=ddir
         
     def read_density_file(self):
         """
@@ -146,4 +159,11 @@ class subsubsample(object):
                             
                         np.save(self.outputdir+"pslists_"+str(subN)+".npy", np.array([df.powerspectrum, df.paircount]))
                         np.save(self.outputdir+"eqbis_"+str(subN)+".npy", np.array([df.Qequil, df.neqtr2]))
+                        
+                        if (self.backupdir!=""):
+                            np.save(self.backupdir+"pslists_"+str(subN)+".npy", np.array([df.powerspectrum, df.paircount]))
+                            np.save(self.backupdir+"eqbis_"+str(subN)+".npy", np.array([df.Qequil, df.neqtr2]))
+                        
+                        
+                        
         

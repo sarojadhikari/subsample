@@ -22,12 +22,16 @@ if (argc>3):
         
 ss = subsample(filebase=fbase, Nfiles=NFILES, Lmesh=LMESH, subx=SUBX)
 bdir="/storage/home/sza5154/scratch/"+name+"/"+seed+"/"
+ddir="/storage/home/sza5154/work/projects/subsample/data/"+name+"/"+seed+"/"
+
 ss.set_basedir(bdir)
 
 if SUBX<5:
     ss.set_outputdir(ss.basedir+fbase+"64/")
+    ss.set_backupdir(ddir+fbase+"64/")
 else:
     ss.set_outputdir(ss.basedir+fbase+"512/")
+    ss.set_backupdir(ddir+fbase+"512/")
 
 
 #newsubx=2
