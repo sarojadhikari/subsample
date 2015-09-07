@@ -142,9 +142,9 @@ class SSPowerSpectra(object):
         self.fNLeqsubs=np.mean(self.eqbispectra, axis=1)
         self.fNLeqds=[]
         for i in range(len(self.eqbispectra)):
-            self.fNLeqds.append(np.array([self.ds[i]*self.eqbispectra[i][j] for j in range(30)]))
+            self.fNLeqds.append(np.array([self.ds[i]*self.eqbispectra[i][j] for j in range(45)]))
         
-    def plot_ps(self, show=False, density=True, pcolor="r", mcolor="b", lw=1.0):
+    def plot_ps(self, show=False, density=True, pcolor="r", mcolor="b", lw=0.6):
         """
         plot all subsampled power spectra in a plot
         """
@@ -159,7 +159,7 @@ class SSPowerSpectra(object):
             ads=np.abs(self.ds)
 	    meands=np.mean(self.ds)
             mads=np.max(ads)
-            normds=np.array([ads[i]/mads for i in range(len(ads))])
+            normds=np.array([ads[i]/mads/1.5 for i in range(len(ads))])
         self.normds=normds
 
         for sub in range(self.Nsubs):
