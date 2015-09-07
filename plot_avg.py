@@ -30,7 +30,7 @@ def PPhideltaL(TYPE="fNL", NG=100, seeds=["7222", "4233", "221192"], subtractG=T
         ssg=SSPowerSpectra(name="normalfNL0", seed=SEED, Nsubs=Nmax)
         ssg.read_statistics()
         sigmasqL=np.var(ssg.ds)
-        ss=SSPowerSpectra(name=NAME, seed=SEED)
+        ss=SSPowerSpectra(name=NAME, seed=SEED, Nsubs=Nmax)
         ss.read_statistics()
         ss.iBk(sigmasqL)
         
