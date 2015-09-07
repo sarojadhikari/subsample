@@ -95,6 +95,7 @@ class subsample(object):
             np.save(self.outputdir+"eqbis_"+str(subN)+".npy", np.array([df.Qequil, df.neqtr2]))
 
             if (self.backupdir!=""):
+		np.save(self.backupdir+"stat_"+str(subN)+".npy", np.array([np.mean(data), np.var(data)]))
                 np.save(self.backupdir+"pslists_"+str(subN)+".npy", np.array([df.powerspectrum, df.paircount]))
                 np.save(self.backupdir+"eqbis_"+str(subN)+".npy", np.array([df.Qequil, df.neqtr2]))
       
