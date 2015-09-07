@@ -24,10 +24,10 @@ def figurebox(xs=xsize, ys=ysize):
     plt.figure(num=None, figsize=(xs, ys))
     plt.tick_params(which='both', color="gray")
 
-def PPhideltaL(TYPE="fNL", NG=100, seeds=["7222", "4233", "221192"], subtractG=True):
+def PPhideltaL(TYPE="fNL", NG=100, seeds=["7222", "4233", "221192"], subtractG=True, Nmax=512):
     NAME="normal"+TYPE+str(NG)
     for SEED in seeds:
-        ssg=SSPowerSpectra(name="normalfNL0", seed=SEED)
+        ssg=SSPowerSpectra(name="normalfNL0", seed=SEED, Nsubs=Nmax)
         ssg.read_statistics()
         sigmasqL=np.var(ssg.ds)
         ss=SSPowerSpectra(name=NAME, seed=SEED)
