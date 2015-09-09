@@ -98,18 +98,36 @@ class densityfield(object):
         for ni in range(self.nkindx):
             self.ntrfdata.append(np.fft.fftn(ntra[ni]))
         
-        self.Bequil=[]
+        self.Bequil=[]  # this lists for triangles in equlateral configuration as functions of k
+        self.Bk1k2=[]   # this lists for triangle with k1=10kmin k2=2k1 as a function of angle
+        # for each angle we basically need to compute k3
+        
+        for k3 in range(self.nkindx):  # the value of k3 for already set k1,k2 defines the angle betwen k1/k2
+            
+            
+            
+            
         for ki in range(self.nkindx):
             ntrtemp=0.
             beqtemp=0.
+            
+            beqtemp2=0.
+            
             for nr1 in range(self.ngrid):
                 for nr2 in range(self.ngrid):
                     for nr3 in range(self.ngrid):
                         ntrtemp=ntrtemp+np.power(np.real(self.ntrfdata[ki][nr1][nr2][nr3]), 3.0)
                         beqtemp=beqtemp+np.power(np.real(self.delninr[ki][nr1][nr2][nr3]), 3.0)
+                        
+                        beqtemp2=beqtemp2 + np.real(self.delninr[ki][nr1][nr2][nr3])*np.real(self.delninr[10][nr1][nr2][nr3])*np.real(self.delninr[20][nr1][nr2][nr3])
+                        
             print ntrtemp/self.ngrid**3.0
             self.neqtr2.append(int(round(ntrtemp/self.ngrid**3.0)))
             self.Bequil.append(beqtemp)
+            self.Bk1k2.append(beqtem2)
+        
+        # also generate bispectrum data in more like a squeezed configuration
+        # we will take k1=10*kmin, k2=2*k1, and a set of 20 angules between k1 and k2 to define the triangle
                         
             
     def equil2(self):
@@ -119,6 +137,9 @@ class densityfield(object):
             self.compute_powerspectrum()
             
         self.Qequil=np.array([self.Bequil[i]*self.bsfactor/np.power(self.ngrid, 3.0)/self.neqtr2[i]/self.powerspectrum[i]**2.0/3.0 for i in range(len(self.Bequil))])
+        
+        self.Qequil2=np.array([self.Bk1k2[i]*self.bsfactor/np.power(self.ngrid, 3.0)/self.neqtr2[i]/(self.powerspectrum[10]*self.powerspectrum[20]+self.powerspectrum[10]*self.powerspectrum[i]+self.powerspectrum[20]*self.powerspectrum[i])/3.0 for i in range(len(self.Bequil))])
+
         
         #for k in range(self.nkindx):
             
