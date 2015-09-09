@@ -100,12 +100,7 @@ class densityfield(object):
         
         self.Bequil=[]  # this lists for triangles in equlateral configuration as functions of k
         self.Bk1k2=[]   # this lists for triangle with k1=10kmin k2=2k1 as a function of angle
-        # for each angle we basically need to compute k3
-        
-        for k3 in range(self.nkindx):  # the value of k3 for already set k1,k2 defines the angle betwen k1/k2
-            
-            
-            
+        # for each angle we basically need to compute k3    
             
         for ki in range(self.nkindx):
             ntrtemp=0.
@@ -124,7 +119,7 @@ class densityfield(object):
             print ntrtemp/self.ngrid**3.0
             self.neqtr2.append(int(round(ntrtemp/self.ngrid**3.0)))
             self.Bequil.append(beqtemp)
-            self.Bk1k2.append(beqtem2)
+            self.Bk1k2.append(beqtemp2)
         
         # also generate bispectrum data in more like a squeezed configuration
         # we will take k1=10*kmin, k2=2*k1, and a set of 20 angules between k1 and k2 to define the triangle
