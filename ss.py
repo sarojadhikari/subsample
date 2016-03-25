@@ -6,9 +6,9 @@ import sys
 
 argc=len(sys.argv)
 name=sys.argv[1]
-print name
+print (name)
 seed=sys.argv[2]
-print seed
+print (seed)
 
 if (argc>3):
     NFILES=int(sys.argv[3])
@@ -19,7 +19,7 @@ if (argc>3):
         fbase=sys.argv[7]
     except:
         fbase="pot.prim"
-        
+
 ss = subsample(filebase=fbase, Nfiles=NFILES, Lmesh=LMESH, subx=SUBX)
 bdir="/storage/home/sza5154/scratch/"+name+"/"+seed+"/"
 ddir="/storage/home/sza5154/work/projects/subsample/data/"+name+"/"+seed+"/"
@@ -40,11 +40,11 @@ else:
 #sss.set_outputdir(bdir+"512/")
 
 comm = MPI.COMM_WORLD
-print "number of cores: "+str(comm.size)+"\n"
+print ("number of cores: "+str(comm.size)+"\n")
 # initialize the subsampling code
 # first generate segments
 ss.GenerateSegments(comm.rank)
-#print comm.rank
+#print (comm.rank)
 comm.Barrier() # end till everything is done
 
 # now distribute the generation of subsamples (64 of them) in the 32 cores
@@ -62,14 +62,13 @@ def sxy(cNum, segs):
 for i in range(0, bdown):
     si, sx, sy = sxy((i*ss.Nfiles)+comm.rank, segs)
     ss.GenerateSubSample(si, sx, sy, ps=True, Lsub=Lbox/ss.subx)
-    #print Lbox/ss.subx
+    #print (Lbox/ss.subx)
     comm.Barrier()
 
 # do anything that is left
 for i in range(bdown*ss.Nfiles, ss.Nsubs):
     si, sx, sy= sxy(i, segs)
     ss.GenerateSubSample(si, sx, sy, ps=True, Lsub=Lbox/ss.subx)
-    
 # code to further breakdown each subsample into newsubx^3 subvolumes
 # this way we get both 4^3=64 and 64*8=512 subsamples at once
 
@@ -80,4 +79,4 @@ for i in range(bdown*ss.Nfiles, ss.Nsubs):
 #    comm.Barrier()
 
 if (comm.rank==0):
-    print "done"
+    print ("done")
