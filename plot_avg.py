@@ -3,7 +3,7 @@ make useful scripts to plot averaged quantities, averaged over
     * subvolumes,
     * seeds, or
     * scale (k)
-    
+
 quantities like <P_subvolume delta_L> and <Q_eq,L delta_L>
 """
 import matplotlib
@@ -24,7 +24,10 @@ def figurebox(xs=xsize, ys=ysize):
     plt.figure(num=None, figsize=(xs, ys))
     plt.tick_params(which='both', color="gray")
 
-def PPhideltaL(TYPE="fNL", NG=100, seeds=["7222", "4233", "221192", "52210"], subtractG=True, Nmax=512):
+def PPhideltaSqL(TYPE="fNL", NG=100, seeds=["7222", "4233", "221192", "52210"], subtractG=True, Nmax=512):
+    PPhideltaL(TYPE=TYPE, NG=NG, seeds=seeds, subtractG=subtractG, Nmax=Nmax, var=True)
+
+def PPhideltaL(TYPE="fNL", NG=100, seeds=["7222", "4233", "221192", "52210"], subtractG=True, Nmax=512, var=False):
     NAME="normal"+TYPE+str(NG)
     for SEED in seeds:
         ssg=SSPowerSpectra(name="normalfNL0", seed=SEED, Nsubs=Nmax)
@@ -32,16 +35,16 @@ def PPhideltaL(TYPE="fNL", NG=100, seeds=["7222", "4233", "221192", "52210"], su
         sigmasqL=np.var(ssg.ds)
         ss=SSPowerSpectra(name=NAME, seed=SEED, Nsubs=Nmax)
         ss.read_statistics()
-        ss.iBk(sigmasqL)
-        
+        ss.iBk(sigmasqL, variance=var)
+
         iBkmean = ss.iBkmean
-        
+
         if (subtractG):
-            ssg.iBk(sigmasqL)
+            ssg.iBk(sigmasqL, variance=var)
             iBkmean = iBkmean - ssg.iBkmean
-            
+
         plt.plot(ss.klist, iBkmean)
-    
+
     kmin=2.*np.pi/ss.Lsub
     kmax=kmin*33
     plt.xlim(kmin, kmax)
@@ -49,24 +52,24 @@ def PPhideltaL(TYPE="fNL", NG=100, seeds=["7222", "4233", "221192", "52210"], su
     plt.ylabel(r'$\langle P_{\rm sv}(k) \bar{\delta}_{\rm sv} \rangle/P(k)/\sigma_{\phi_L}^2$')
     plt.title(r'$f_{\rm NL}='+str(NG)+'$', y=1.02)
     plt.show()
-    
+
 def PQeqdeltaL(TYPE="D3", NG=100000, seeds=["7222", "4233", "221192"], subtractG=True, Nmax=512, factor=1.):
     NAME="normal"+TYPE+str(NG)
     for SEED in seeds:
         ss=SSPowerSpectra(name=NAME, seed=SEED, Nsubs=Nmax)
         ss.read_statistics()
         Qeqdeltamean = np.mean(ss.fNLeqds, axis=0)
-        
+
         if (subtractG):
             # get the Gaussian piece to subtractG
             ssg=SSPowerSpectra(name="normalfNL0", seed=SEED, Nsubs=Nmax)
             ssg.read_statistics()
             QeqdeltameanG = np.mean(ssg.fNLeqds, axis=0)
             Qeqdeltamean = Qeqdeltamean - QeqdeltameanG
-        
+
         Nks=len(Qeqdeltamean)
         plt.plot(ss.klist[:Nks], factor*Qeqdeltamean)
-        
+
     sqLimitTheory = np.array([np.var(ssg.ds)*NG*2 for i in range(Nks)])
     plt.plot(ss.klist[:Nks], sqLimitTheory, color="black", linestyle="dashed", linewidth=1.5, alpha=0.4)
     plt.ylabel(r'$\left\langle Q^{\rm equil}(k) \bar{\delta}_{\mathbf{r}_L} \right\rangle$')
@@ -74,6 +77,5 @@ def PQeqdeltaL(TYPE="D3", NG=100000, seeds=["7222", "4233", "221192"], subtractG
     kmin=2.*np.pi/ss.Lsub
     kmax=kmin*33
     plt.xlim(kmin, kmax)
-    
+
     plt.show()
-    
