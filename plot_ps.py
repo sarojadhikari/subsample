@@ -6,10 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import matplotlib
-matplotlib.rcParams.update({'font.size': 18})
-matplotlib.rcParams.update({'figure.autolayout': True})
-matplotlib.rcParams.update({'ytick.major.pad': 9})
-matplotlib.rcParams.update({'xtick.major.pad': 7})
+import matplotlib.cm as cmap
+import matplotlib.colors as colors
+
 
 class SSPowerSpectra(object):
 
@@ -199,10 +198,17 @@ nsity value and plot line colors according to
             self.plt.show()
 
 
-    def plot_bs(self, show=False, density=True, pcolor="r", mcolor="b", lw=1.0):
+    def plot_bs(self, show=False, density=True, pcolor="r", mcolor="b", lw=1.0, subtract = 0):
         """
         plot eq bispectra for subsamples color coded by the average density of the subsamples
         """
+        cm = matplotlib.cm.jet
+
+        if (subtract !=0):
+            geqbispectra = subtract
+        else:
+            geqbispectra = np.zeros(np.shape(self.eqbispectra))
+
         if (density):
             """ also read the local overdensity value and plot line colors according to
             the density value, + = red, - = blue; adjust alpha accordingly
@@ -217,20 +223,30 @@ nsity value and plot line colors according to
             normds=np.array([ads[i]/mads for i in range(len(ads))])
             self.normds=normds
 
+        cNorm = colors.Normalize(min(self.ds), vmax=max(self.ds))
+        scalarMap = cmap.ScalarMappable(norm=cNorm, cmap=cm)
+        scalarMap.set_array([])
+
+        fig, ax = self.plt.subplots()
+
         for sub in range(self.Nsubs):
             #print sub
             if not(density):
-                self.plt.plot(self.klist, self.fNLeq[sub])
+                lplot=ax.plot(self.klist, self.fNLeq[sub])
             else:
+                colorVal = scalarMap.to_rgba(self.ds[sub])
+                lplot = ax.plot(self.klist[1:-1], self.eqbispectra[sub][1:-1]-geqbispectra[sub][1:-1], color=colorVal, alpha=normds[sub], linewidth=lw)
+                """
                 if self.ds[sub]>meands:
-                    self.plt.plot(self.klist[1:-1], self.eqbispectra[sub][1:-1], color=pcolor, alpha=normds[sub], linewidth=lw)
+                    self.plt.plot(self.klist[1:-1], self.eqbispectra[sub][1:-1]-geqbispectra[sub][1:-1], color=pcolor, alpha=normds[sub], linewidth=lw)
                 else:
-                    self.plt.plot(self.klist[1:-1], self.eqbispectra[sub][1:-1], color=mcolor, alpha=normds[sub], linewidth=lw)
+                    self.plt.plot(self.klist[1:-1], self.eqbispectra[sub][1:-1]-geqbispectra[sub][1:-1], color=mcolor, alpha=normds[sub], linewidth=lw)
+                """
 
-        self.plt.xlabel(r"$k {\rm (h/Mpc)}$")
-        self.plt.ylabel(r"${\rm Q}(k)$")
-        self.plt.xscale('log')
+        ax.set_xlabel(r"$k {\rm (h/Mpc)}$")
+        ax.set_ylabel(r"${\rm Q}(k)$")
+        ax.set_xscale('log')
+        cbar = fig.colorbar(scalarMap, format='%.0e')
         #self.plt.yscale('log')
-
         if (show):
             self.plt.show()
